@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Payment</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+		integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
+		integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
+		crossorigin="anonymous"></script>
+</head>
+
+<body>
+	<div class="header">
+		<!-- ... (Ton code de navigation reste inchangé) ... -->
+	</div>
+
+	<div class="container my-5">
+		<div class="card">
+			<div class="card-header">
+				Payment
+			</div>
+			<div class="card-body">
+				<form action="#" method="post" th:action="@{/payNow}" th:object="${payment}">
+					<!-- Ajout de th:field pour lier les champs au modèle -->
+					<div class="mb-3">
+						<label for="amount" class="form-label">Amount</label>
+						<input type="text" class="form-control" id="amount" name="amount" 
+							th:value="${total}" readonly>
+					</div>
+
+					<div class="mb-3">
+						<label for="date" class="form-label">Date Payment</label>
+						<input type="date" class="form-control" id="date" name="datePayment" th:field="*{paymentDate}">
+					</div>
+
+					<div class="mb-3" id="options">
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="type" id="creditCardOption"
+								value="creditcard" checked>
+							<label class="form-check-label" for="creditCardOption">Credit Card</label>
+						</div>
+
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="type" id="paypalOption"
+								value="paypal">
+							<label class="form-check-label" for="paypalOption">Paypal</label>
+						</div>
+					</div>
+
+					<div id="creditcard">
+						<div class="mb-3">
+							<label for="cardNumber" class="form-label">Credit Card Number</label>
+							<input type="text" class="form-control" id="cardNumber" name="cardNumber">
+						</div>
+						<div class="mb-3">
+							<label for="expirationdate" class="form-label">Expiration Date</label>
+							<input type="date" class="form-control" id="expirationdate" name="expirationdate">
+						</div>
+					</div>
+					<div class="mb-3" id="paypal" style="display: none;">
+						<label for="paypalAccountNumber" class="form-label">Account Number</label>
+						<input type="text" class="form-control" id="paypalAccountNumber" name="accountNumber">
+					</div>
+					<input type="hidden" th:field="*{type}" />
+					<button type="submit" class="btn btn-outline-primary">Pay Now</button>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<script>
+    document.getElementById("options").addEventListener("change", () => {
+        if (document.getElementById('paypalOption').checked) {
+            document.getElementById('paypal').style.display = 'block';
+            document.getElementById('creditcard').style.display = 'none';
+            document.getElementById('type').value = 'Paypal'; // Mettez à jour la valeur du champ paymentType
+        } else {
+            document.getElementById('paypal').style.display = 'none';
+            document.getElementById('creditcard').style.display = 'block';
+            document.getElementById('type').value = 'CreditCard'; // Mettez à jour la valeur du champ paymentType
+        }
+    });
+</script>
+
+</body>
+
+</html>
