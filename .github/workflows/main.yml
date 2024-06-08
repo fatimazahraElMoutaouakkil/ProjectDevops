@@ -27,7 +27,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        
+        with:
+          submodules: false  # Disable submodule checkout
+
       - name: Build with Maven
         run: ./mvnw clean install
 
