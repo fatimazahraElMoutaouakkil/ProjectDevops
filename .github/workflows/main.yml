@@ -2,63 +2,55 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "master" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "master" ]
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: serveur1
 
     services:
       mysql:
-        image: mysql:latest
+        image: mysql:8.0
         ports:
           - 3306:3306
-        env:
-          MYSQL_ROOT_PASSWORD: ''
-          MYSQL_DATABASE: dbecommercefinal
         options: >-
-          --health-cmd "mysqladmin ping --silent"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: dbecommercefinal
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v2
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: '17'
 
-    - name: Cache Maven packages
-      uses: actions/cache@v2
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-m2-
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-    - name: Build with Maven
-      run: mvn clean install
+      - name: Build with Maven
+        run: ./mvnw clean install
 
-    - name: Run Spring Boot Application
-      env:
-        SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/dbecommercefinal?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
-        SPRING_DATASOURCE_USERNAME: root
-        SPRING_DATASOURCE_PASSWORD: ''
-        SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
-        SPRING_JPA_SHOW_SQL: true
-        SPRING_JPA_HIBERNATE_DDL_AUTO: update
-        SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
-        SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 10
-        SPRING_THYMELEAF_CACHE: false
-        SPRING_THYMELEAF_PREFIX: classpath:/templates/
-        SPRING_THYMELEAF_SUFFIX: .html
-        SPRING_RESOURCES_STATIC_LOCATIONS: classpath:/static/
-      run: mvn spring-boot:run
+      - name: Run tests
+        run: ./mvnw test
+
+      - name: Start Spring Boot application
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/dbecommercefinal?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: root
+        run: ./mvnw spring-boot:run
