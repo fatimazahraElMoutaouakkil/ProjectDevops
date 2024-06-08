@@ -1,0 +1,64 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    services:
+      mysql:
+        image: mysql:latest
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: ''
+          MYSQL_DATABASE: dbecommercefinal
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Maven packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-m2-
+
+    - name: Build with Maven
+      run: mvn clean install
+
+    - name: Run Spring Boot Application
+      env:
+        SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/dbecommercefinal?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+        SPRING_DATASOURCE_USERNAME: root
+        SPRING_DATASOURCE_PASSWORD: ''
+        SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+        SPRING_JPA_SHOW_SQL: true
+        SPRING_JPA_HIBERNATE_DDL_AUTO: update
+        SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+        SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 10
+        SPRING_THYMELEAF_CACHE: false
+        SPRING_THYMELEAF_PREFIX: classpath:/templates/
+        SPRING_THYMELEAF_SUFFIX: .html
+        SPRING_RESOURCES_STATIC_LOCATIONS: classpath:/static/
+      run: mvn spring-boot:run
